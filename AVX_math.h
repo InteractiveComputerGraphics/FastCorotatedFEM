@@ -468,6 +468,23 @@ public:
 	}
 };
 
+//from Eigen/src/Core/util/Memory.h, added alignment parameter
+inline void* handmade_aligned_malloc(std::size_t size, std::size_t alignment)
+{
+    void *original = std::malloc(size+alignment);
+    if (original == 0) return 0;
+    void *aligned = reinterpret_cast<void*>((reinterpret_cast<std::size_t>(original) & ~(std::size_t(alignment-1))) + alignment);
+    *(reinterpret_cast<void**>(aligned) - 1) = original;
+    return aligned;
+}
+
+//from Eigen/src/Core/util/Memory.h
+inline void handmade_aligned_free(void *ptr)
+{
+    if (ptr) std::free(*(reinterpret_cast<void**>(ptr) - 1));
+}
+
+
 // ----------------------------------------------------------------------------------------------
 //alligned allocator so that vectorized types can be used in std containers
 //from: https://stackoverflow.com/questions/8456236/how-is-a-vectors-data-aligned
@@ -503,9 +520,11 @@ public:
 	inline pointer allocate(size_type n) {
 #ifdef _WIN32
 		return (pointer)_aligned_malloc(n * sizeof(value_type), N);
-#elif __linux__
+#elif defined(__linux__)
 		// NB! Argument order is opposite from MSVC/Windows
 		return (pointer) aligned_alloc(N, n * sizeof(value_type));
+#elif defined(__APPLE__)
+        return (pointer) handmade_aligned_malloc(n * sizeof(value_type), N);
 #else
 #error "Unknown platform"
 #endif
@@ -514,8 +533,10 @@ public:
 	inline void deallocate(pointer p, size_type) {
 #ifdef _WIN32
 		_aligned_free(p);
-#elif __linux__
+#elif defined(__linux__)
 		free(p);
+#elif defined(__APPLE__)
+        handmade_aligned_free(p);
 #else
 #error "Unknown platform"
 #endif

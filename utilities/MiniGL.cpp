@@ -9,13 +9,13 @@
 #ifdef __APPLE__
 #include <OpenGL/GL.h>
 #include <OpenGL/GLU.h>
+#include <GLUT/glut.h>
 #else
 #include "GL/gl.h"
 #include "GL/glu.h"
-#endif
-
 #include "GL/glut.h"
 #include "GL/freeglut_ext.h"
+#endif
 
 #define _USE_MATH_DEFINES
 
@@ -944,7 +944,7 @@ void MiniGL::breakPointMainLoop()
 		m_breakPointLoop = true;
 		while (m_breakPointLoop)
 		{
-			glutMainLoopEvent();
+			glutMainLoop();
 		}
 	}
 }

@@ -62,7 +62,7 @@ bool FastCorotFEM::initialize(
 	vector<Triplet<Real>> triplets_M;
 	triplets_M.reserve(4 * nTets);
 	vector<Real> Kreal(nTets);
-	vector<Real[4][3]> Dt(nTets);
+    vector<Eigen::Matrix<Real,4,3> > Dt(nTets);
 	vector<Matrix3r> Dm_inv(nTets);
 	vector<Real> rest_volume(nTets);
 	vector<Real> invMass(nVerts);
@@ -98,16 +98,16 @@ bool FastCorotFEM::initialize(
 		
 		//compute matrix D_t from Eq. (9) (actually Dt[t] is D_t^T)
 		for (int k = 0; k < 3; k++)
-			Dt[t][0][k] = -Dm_inv[t](0, k) - Dm_inv[t](1, k) - Dm_inv[t](2, k);
+			Dt[t](0,k) = -Dm_inv[t](0, k) - Dm_inv[t](1, k) - Dm_inv[t](2, k);
 
 		for (int j = 1; j < 4; j++)
 			for (int k = 0; k < 3; k++)
-				Dt[t][j][k] = Dm_inv[t](j - 1, k);
+				Dt[t](j,k) = Dm_inv[t](j - 1, k);
 
 		//initialize the matrix D
 		for (int i = 0; i<4; i++)
 			for (int j = 0; j < 3; j++)
-				triplets_D.push_back(Triplet<Real>(9 * t + 3 * j, it[i], Dt[t][i][j]));
+				triplets_D.push_back(Triplet<Real>(9 * t + 3 * j, it[i], Dt[t](i,j)));
 	}
 
 	//set matrices
@@ -577,8 +577,8 @@ void FastCorotFEM::convertToAVX(const vector<Real>& v, vector<Scalarf8, Alignmen
 // ----------------------------------------------------------------------------------------------
 //
 void FastCorotFEM::convertToAVX(
-		const vector<Real[4][3]>& v, 
-		vector<vector<vector<Scalarf8, AlignmentAllocator<Scalarf8, 32>>>>& vAVX)
+        const vector<Eigen::Matrix<Real,4,3> >& v,
+		vector<vector<vector<Scalarf8, AlignmentAllocator<Scalarf8, 32> > > >& vAVX)
 {
 	int regularPart = (nTets / 8) * 8;
 	for (int i = 0; i < regularPart; i += 8)
@@ -588,7 +588,7 @@ void FastCorotFEM::convertToAVX(
 		{
 			vAVX[i / 8][j].resize(3);
 			for (int k = 0; k < 3; k++)
-				vAVX[i / 8][j][k] = Scalarf8(v[i + 0][j][k], v[i + 1][j][k], v[i + 2][j][k], v[i + 3][j][k], v[i + 4][j][k], v[i + 5][j][k], v[i + 6][j][k], v[i + 7][j][k]);
+				vAVX[i / 8][j][k] = Scalarf8(v[i + 0](j,k), v[i + 1](j,k), v[i + 2](j,k), v[i + 3](j,k), v[i + 4](j,k), v[i + 5](j,k), v[i + 6](j,k), v[i + 7](j,k));
 		}
 	}
 
@@ -601,8 +601,8 @@ void FastCorotFEM::convertToAVX(
 			{
 				Real vtmp[8];
 				for (int i = regularPart; i < regularPart + 8; i++)
-					if (i < nTets) vtmp[i - regularPart] = v[i][j][k];
-					else vtmp[i - regularPart] = v[nTets - 1][j][k];
+					if (i < nTets) vtmp[i - regularPart] = v[i](j,k);
+					else vtmp[i - regularPart] = v[nTets - 1](j,k);
 
 				vAVX[regularPart/ 8][j][k] = Scalarf8(vtmp[0],	vtmp[1], vtmp[2], vtmp[3], vtmp[4], vtmp[5], vtmp[6], vtmp[7]);
 			}

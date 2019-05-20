@@ -2,7 +2,12 @@
 #include "utilities/MiniGL.h"
 #include "utilities/Timing.h"
 #include "TetModel.h"
+
+#ifdef __APPLE__
+#include <GLUT/glut.h>
+#else
 #include "GL/glut.h"
+#endif
 
 INIT_TIMING
 

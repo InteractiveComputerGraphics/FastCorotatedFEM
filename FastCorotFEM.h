@@ -91,7 +91,7 @@ public:
 			std::vector<Scalarf8, AlignmentAllocator<Scalarf8, 32>>& vAVX);
 
 	void convertToAVX(
-			const std::vector<Real[4][3]>& v, 
+                      const std::vector<Eigen::Matrix<Real,4,3>>& v, 
 			std::vector<std::vector<std::vector<Scalarf8, AlignmentAllocator<Scalarf8, 32>>>>& vAVX);
 };
 #endif
