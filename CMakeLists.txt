@@ -38,6 +38,8 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 	add_compile_options(/arch:AVX)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 	add_compile_options("-mavx")
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
+    add_compile_options("-mavx")
 endif()
 
 set(EIGEN3_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/extern/eigen")
@@ -65,8 +67,9 @@ if (WIN32)
   add_dependencies(FastCorotDemo freeglut)
 else()
   find_package(GLUT REQUIRED)
-endif()	
-	
+endif()
+
+set_target_properties(FastCorotDemo PROPERTIES CXX_STANDARD 11)
 target_link_libraries(FastCorotDemo ${OPENGL_LIBRARIES} ${GLUT_LIBRARIES})
 
 add_definitions(-DDATA_PATH="${PROJECT_PATH}/meshes/")
